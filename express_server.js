@@ -63,8 +63,12 @@ app.get("/urls/:shortURL", (req, res) => {
 //  });
 
 const generateRandomString = () => {
-
+  // creates a random alpha-numeric string of 6 characters
+  let id = Math.random().toString(36).substring(2, 8);
+  console.log(id);
 };
+
+console.log(generateRandomString());
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
