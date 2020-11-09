@@ -42,6 +42,11 @@ app.get("/hello", (req, res) => {
   res.render("urls_index", templateVars);
  });
 
+ // Must be defined GET "/urls/:shortURL" because Express will think that new is a route parameter.
+ app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
  app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
   res.render("urls_show", templateVars);
