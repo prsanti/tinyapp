@@ -27,20 +27,27 @@ app.get("/hello", (req, res) => {
   // res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
- // Template Engine Excercise
- app.get("/urls", (req, res) => {
+
+// Template Engine Excercise
+app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
 
   // res.render takes in a .ejs file from views, then a variable to pass into the .ejs file
   res.render("urls_index", templateVars);
- });
+});
 
- // Must be defined GET "/urls/:shortURL" because Express will think that new is a route parameter.
- app.get("/urls/new", (req, res) => {
+// Must be defined GET "/urls/:shortURL" because Express will think that new is a route parameter.
+app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
- app.get("/urls/:shortURL", (req, res) => {
+// Event when hitting submit under /urls/new
+app.post("/urls", (req, res) => {
+  console.log(req.body);  // Log the POST request body to the console
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
   res.render("urls_show", templateVars);
 });
@@ -54,6 +61,10 @@ app.get("/hello", (req, res) => {
 //  app.get("/fetch", (req, res) => {
 //   res.send(`a = ${a}`);
 //  });
+
+const generateRandomString = () => {
+
+};
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
