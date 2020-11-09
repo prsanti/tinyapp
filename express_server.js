@@ -43,13 +43,35 @@ app.get("/urls/new", (req, res) => {
 
 // Event when hitting submit under /urls/new
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let newID = generateRandomString();
+  // adds the submited url into the urlDatabase with a random string ID
+  urlDatabase[newID] = `http://${req.body.longURL}`;
+  res.redirect(`/urls/${newID}`);
+
+  // console.log(urlDatabase);
+
+  // console.log(req.body);  // Log the POST request body to the console
+  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
+const generateRandomString = () => {
+  // creates a random alpha-numeric string of 6 characters
+  let id = Math.random().toString(36).substring(2, 8);
+  return id;
+};
+
+app.listen(PORT, () => {
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 // Scope problem
@@ -61,15 +83,3 @@ app.get("/urls/:shortURL", (req, res) => {
 //  app.get("/fetch", (req, res) => {
 //   res.send(`a = ${a}`);
 //  });
-
-const generateRandomString = () => {
-  // creates a random alpha-numeric string of 6 characters
-  let id = Math.random().toString(36).substring(2, 8);
-  console.log(id);
-};
-
-console.log(generateRandomString());
-
-app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
-});
