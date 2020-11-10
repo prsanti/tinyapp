@@ -23,8 +23,6 @@ app.get("/urls.json", (req, res) => {
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World!' };
   res.render("hello_world", templateVars);
-
-  // res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 
@@ -47,15 +45,10 @@ app.post("/urls", (req, res) => {
   // adds the submited url into the urlDatabase with a random string ID
   urlDatabase[newID] = `http://${req.body.longURL}`;
   res.redirect(`/urls/${newID}`);
-
-  // console.log(urlDatabase);
-
-  // console.log(req.body);  // Log the POST request body to the console
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: req.params.longURL };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render("urls_show", templateVars);
 });
 
@@ -73,13 +66,3 @@ const generateRandomString = () => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// Scope problem
-// app.get("/set", (req, res) => {
-//   const a = 1;
-//   res.send(`a = ${a}`);
-//  });
- 
-//  app.get("/fetch", (req, res) => {
-//   res.send(`a = ${a}`);
-//  });
