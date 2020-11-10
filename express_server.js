@@ -62,7 +62,6 @@ app.get("/u/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  // console.log(longURL.substring(0,8));
   // adds the submited url into the urlDatabase with a random string ID
   // checks before if http:// was added or not
   if (longURL.substring(0, 7) === "http://") {
@@ -99,7 +98,6 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  // console.log("trying to logout");
   res.clearCookie('username');
   res.redirect("/urls");
 });
