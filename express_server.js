@@ -66,6 +66,21 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls")
 });
 
+app.post("/urls/:shortURL/edit", (req, res) => {
+  // console.log(req.body.newURL);
+  // Input field named "newURL" is found in req.body
+  const longURL = req.body.newURL;
+  const shortURL = req.params.shortURL;
+
+  // checks if the user entered http:// or not for their input
+  if (longURL.substring(0, 7) === "http://") {
+    urlDatabase[shortURL] = longURL;
+  } else {
+    urlDatabase[shortURL] = `http://${longURL}`;
+  }
+  res.redirect("/urls");
+});
+
 const generateRandomString = () => {
   // creates a random alpha-numeric string of 6 characters
   const shortURL = Math.random().toString(36).substring(2, 8);
@@ -75,3 +90,9 @@ const generateRandomString = () => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+/* <h2 class="card-title">Edit</h2>
+<form action="/urls/<%= shortURL %>/edit" method="POST" >
+  <h6 class="card-text">New URL: <input type="text" placeholder="<%= longURL %>"><button>Submit</button>
+  </h6>
+</form> */
