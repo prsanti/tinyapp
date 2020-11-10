@@ -32,6 +32,20 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  if (urlDatabase[req.params.shortURL]) {
+    res.render("urls_show", templateVars);
+  } else {
+    res.send("URL not found.");
+  }
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+});
+
 // Event when hitting submit under /urls/new
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
@@ -47,18 +61,9 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  if (urlDatabase[req.params.shortURL]) {
-    res.render("urls_show", templateVars);
-  } else {
-    res.send("URL not found.")
-  }
-});
-
-app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect("/urls")
 });
 
 const generateRandomString = () => {
