@@ -41,15 +41,26 @@ app.get("/urls/new", (req, res) => {
 
 // Event when hitting submit under /urls/new
 app.post("/urls", (req, res) => {
-  let newID = generateRandomString();
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  console.log(longURL.substring(0,8));
   // adds the submited url into the urlDatabase with a random string ID
-  urlDatabase[newID] = `http://${req.body.longURL}`;
-  res.redirect(`/urls/${newID}`);
+  // checks before if http:// was added or not
+  if (longURL.substring(0, 7) === "http://") {
+    urlDatabase[shortURL] = longURL;
+  } else {
+    urlDatabase[shortURL] = `http://${longURL}`;
+  }
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  res.render("urls_show", templateVars);
+  if (urlDatabase[req.params.shortURL]) {
+    res.render("urls_show", templateVars);
+  } else {
+    res.send("URL not found.")
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
