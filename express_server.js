@@ -23,7 +23,6 @@ app.get("/urls.json", (req, res) => {
 // Template Engine Excercise
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
-
   // res.render takes in a .ejs file from views, then a variable to pass into the .ejs file
   res.render("urls_index", templateVars);
 });
@@ -64,8 +63,8 @@ app.get("/u/:shortURL", (req, res) => {
 
 const generateRandomString = () => {
   // creates a random alpha-numeric string of 6 characters
-  let id = Math.random().toString(36).substring(2, 8);
-  return id;
+  const shortURL = Math.random().toString(36).substring(2, 8);
+  return shortURL;
 };
 
 app.listen(PORT, () => {
