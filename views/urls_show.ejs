@@ -19,10 +19,11 @@
 
     <div class="card-footer text-muted">
       <h2 class="card-title">Edit</h2>
-      <form action="" method="POST" >
-        <h6 class="card-text">New URL: <input type="text" placeholder="<%= longURL %>"><button>Submit</button>
+      <form action="/urls/<%= shortURL %>/edit" method="POST" >
+        <label for="New URL">New URL:</label>
+        <input id="new_url" type="text" name="newURL" value="<%= longURL %>">
+        <input type="submit" value="Submit">
       </form>
-      </h6>
     </div>
 
   </div>
