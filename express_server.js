@@ -20,12 +20,6 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
-});
-
-
 // Template Engine Excercise
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
