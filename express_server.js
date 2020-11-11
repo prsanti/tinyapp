@@ -125,6 +125,23 @@ app.get("/register", (req, res) => {
   res.render("register");
 });
 
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+
+  const id = generateRandomString();
+
+  users[id] = {
+    id,
+    email,
+    password
+  };
+
+  console.log(users);
+
+  res.cookie('user_id', id);
+  res.redirect("/urls");
+});
+
 const generateRandomString = () => {
   // creates a random alpha-numeric string of 6 characters
   const shortURL = Math.random().toString(36).substring(2, 8);
