@@ -16,10 +16,13 @@
         <input type="submit" value="Logout">
       </form>
     <% } else { %>
-      <form action="/login" method="POST">
-        <input name="username" type="text" placeholder="Username">
+      <form action="/login" method="GET">
+        <!-- <input name="username" type="text" placeholder="Username"> -->
         <input type="submit" value="Login">
     </form>
   <% } %>
+    <form action="/register" method="GET">
+      <input type="submit" value="Register">
+    </form>
   </nav>
 </header>

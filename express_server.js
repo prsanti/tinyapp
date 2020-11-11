@@ -15,7 +15,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-const users = { 
+let users = { 
   "userRandomID": {
     id: "userRandomID", 
     email: "user@example.com", 
@@ -43,6 +43,19 @@ const fetchEmail = (usersDatabase, email) => {
   return false;
 };
 
+const authenticateUser = (usersDatabase, email, password) => {
+  for (const user in usersDatabase) {
+    if (usersDatabase.user.email === email) {
+      if (usersDatabase.user.password === password) {
+        return {error: null, user: usersDatabase[user]};
+      } else {
+        return { error: "Password does not match", user: null };
+      }
+    }
+  }
+  return {error: "Email not found", user: null };
+};
+
 // const fetchUser = (usersDatabase, id) => {
 //   if (usersDatabase.id) {
 //     return { error: null, user: usersDatabase[id] }
@@ -67,6 +80,8 @@ app.get("/urls", (req, res) => {
     user_id: users[req.cookies["user_id"]],
     urls: urlDatabase
   };
+  // console.log(templateVars);
+  // console.log(user_id);
   // res.render takes in a .ejs file from views, then a variable to pass into the .ejs file
   // console.log(req.cookies);
   res.render("urls_index", templateVars);
@@ -92,7 +107,6 @@ app.get("/urls/new", (req, res) => {
   const templateVars = { 
     // username: req.cookies["username"]
     user_id: users[req.cookies["user_id"]],
-    req
   };
   res.render("urls_new", templateVars);
 });
@@ -139,9 +153,44 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 // LOGIN
 app.post("/login", (req, res) => {
-  // res.cookie('username', req.body.username);
-  res.cookie("user_id", users[req.cookies["user_id"]]);
-  res.redirect("/urls");
+  // console.log(req.cookies);
+  
+  // idk which one to use. req.cookies is undefined
+  // res.cookie("user_id", users[req.cookies["user_id"]]);
+  // res.cookie("user_id", req.body.email);
+
+
+  const { email, password } = req.body;
+
+  // const fetchUserInfo = authenticateUser(users, email, password);
+
+  // if (fetchUserInfo.error) {
+  //   const templateVars = { error: fetchUserInfo.error };
+  //   return res.render("login", templateVars);
+  // } else {
+  //   res.cookie("user_id", fetchUserInfo.email);
+  //   return res.redirect("/urls");
+  // }
+
+  for (const user in users) {
+    if (users[user].email === email) {
+      if (users[user].password === password) {
+        res.cookie("user_id", users[user].id);
+        return res.redirect("/urls");
+      } else {
+        return res.status(403).send("Incorrect password.");
+      }
+    }
+  }
+
+  return res.status(403).send("Email not found");
+});
+
+app.get("/login", (req, res) => {
+  const templateVars = { 
+    user_id: users[req.cookies["user_id"]],
+  };
+  res.render("login", templateVars);
 });
 
 // LOGOUT
@@ -153,7 +202,10 @@ app.post("/logout", (req, res) => {
 
 // REGISTER
 app.get("/register", (req, res) => {
-  res.render("register");
+  const templateVars = { 
+    user_id: users[req.cookies["user_id"]],
+  };
+  res.render("register", templateVars);
 });
 
 app.post("/register", (req, res) => {
