@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const e = require("express");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -31,6 +32,15 @@ const generateRandomString = () => {
   // creates a random alpha-numeric string of 6 characters
   const shortURL = Math.random().toString(36).substring(2, 8);
   return shortURL;
+};
+
+const fetchEmail = (usersDatabase, email) => {
+  for (const id in usersDatabase) {
+    if (usersDatabase[id].email === email) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // const fetchUser = (usersDatabase, id) => {
@@ -149,13 +159,20 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
 
-  for (const id in users) {
-    if (users[id].email === email) {
-      // return res.send("Email already in use, please try again.");
-      console.log("email already in use, please try again.");
-      return res.redirect("/register");
-    }
+  if (email === "" || password === "") {
+    return res.status(400).send("Invalid email or password");
+  } else if (fetchEmail(users, email)) {
+    return res.status(400).send("Email already in use.");
   }
+
+  // for (const id in users) {
+  //   if (users[id].email === email) {
+  //     // return res.send("Email already in use, please try again.");
+  //     // console.log("email already in use, please try again.");
+  //     // return res.redirect("/register");
+  //     return res.status(400).send("Email already in use.");
+  //   }
+  // }
 
   const id = generateRandomString();
 
