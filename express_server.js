@@ -27,6 +27,20 @@ const users = {
   }
 };
 
+const generateRandomString = () => {
+  // creates a random alpha-numeric string of 6 characters
+  const shortURL = Math.random().toString(36).substring(2, 8);
+  return shortURL;
+};
+
+// const fetchUser = (usersDatabase, id) => {
+//   if (usersDatabase.id) {
+//     return { error: null, user: usersDatabase[id] }
+//   } else {
+//     return { error: "User does not exist", user: null };
+//   }
+// };
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -39,10 +53,12 @@ app.get("/urls.json", (req, res) => {
 // Template Engine Excercise
 app.get("/urls", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"], 
+    //username: req.cookies["username"], 
+    user_id: users[req.cookies["user_id"]],
     urls: urlDatabase
   };
   // res.render takes in a .ejs file from views, then a variable to pass into the .ejs file
+  // console.log(req.cookies);
   res.render("urls_index", templateVars);
 });
 
@@ -64,7 +80,9 @@ app.post("/urls", (req, res) => {
 // Must be defined GET "/urls/:shortURL" because Express will think that new is a route parameter.
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"]
+    // username: req.cookies["username"]
+    user_id: users[req.cookies["user_id"]],
+    req
   };
   res.render("urls_new", templateVars);
 });
@@ -72,7 +90,8 @@ app.get("/urls/new", (req, res) => {
 // /u/:shortURL Path
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"], 
+    // username: req.cookies["username"],
+    user_id: users[req.cookies["user_id"]],
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL] 
   };
@@ -110,13 +129,15 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 // LOGIN
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username);
+  // res.cookie('username', req.body.username);
+  res.cookie("user_id", users[req.cookies["user_id"]]);
   res.redirect("/urls");
 });
 
 // LOGOUT
 app.post("/logout", (req, res) => {
-  res.clearCookie('username');
+  // res.clearCookie('username');
+  res.clearCookie("user_id");
   res.redirect("/urls");
 });
 
@@ -128,6 +149,14 @@ app.get("/register", (req, res) => {
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
 
+  for (const id in users) {
+    if (users[id].email === email) {
+      // return res.send("Email already in use, please try again.");
+      console.log("email already in use, please try again.");
+      return res.redirect("/register");
+    }
+  }
+
   const id = generateRandomString();
 
   users[id] = {
@@ -136,18 +165,39 @@ app.post("/register", (req, res) => {
     password
   };
 
-  console.log(users);
+  // cookie with the full object of id
+  // res.cookie('user_id', users[id]);
 
+  // cookie with just the id srting
   res.cookie('user_id', id);
   res.redirect("/urls");
 });
 
-const generateRandomString = () => {
-  // creates a random alpha-numeric string of 6 characters
-  const shortURL = Math.random().toString(36).substring(2, 8);
-  return shortURL;
-};
-
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+// old/working _header.ejs
+// <% if (username) { %>
+//   <form action="/logout" method="POST">
+//     <label>Logged in As: <%= username %>!</label>
+//     <input type="submit" value="Logout">
+//   </form>
+// <% } else { %>
+// <form action="/login" method="POST">
+//   <input name="username" type="text" placeholder="Username">
+//   <input type="submit" value="Login">
+// </form>
+// <% } %>
+
+// <% if (users[req.cookies["user_id"]]) { %>
+//   <form action="/logout" method="POST">
+//     <label>Logged in As: <%= users[req.cookies["user_id"]].email %>!</label>
+//     <input type="submit" value="Logout">
+//   </form>
+// <% } else { %>
+//   <form action="/login" method="POST">
+//     <input name="username" type="text" placeholder="Username">
+//     <input type="submit" value="Login">
+// </form>
+// <% } %>
