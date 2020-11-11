@@ -245,28 +245,3 @@ app.post("/register", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-// old/working _header.ejs
-// <% if (username) { %>
-//   <form action="/logout" method="POST">
-//     <label>Logged in As: <%= username %>!</label>
-//     <input type="submit" value="Logout">
-//   </form>
-// <% } else { %>
-// <form action="/login" method="POST">
-//   <input name="username" type="text" placeholder="Username">
-//   <input type="submit" value="Login">
-// </form>
-// <% } %>
-
-// <% if (users[req.cookies["user_id"]]) { %>
-//   <form action="/logout" method="POST">
-//     <label>Logged in As: <%= users[req.cookies["user_id"]].email %>!</label>
-//     <input type="submit" value="Logout">
-//   </form>
-// <% } else { %>
-//   <form action="/login" method="POST">
-//     <input name="username" type="text" placeholder="Username">
-//     <input type="submit" value="Login">
-// </form>
-// <% } %>
