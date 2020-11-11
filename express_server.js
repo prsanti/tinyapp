@@ -14,6 +14,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -22,6 +35,7 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// /URLS Path
 // Template Engine Excercise
 app.get("/urls", (req, res) => {
   const templateVars = { 
@@ -32,6 +46,21 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+// Event when hitting submit under /urls/new
+app.post("/urls", (req, res) => {
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
+  // adds the submited url into the urlDatabase with a random string ID
+  // checks before if http:// was added or not
+  if (longURL.substring(0, 7) === "http://") {
+    urlDatabase[shortURL] = longURL;
+  } else {
+    urlDatabase[shortURL] = `http://${longURL}`;
+  }
+  res.redirect(`/urls/${shortURL}`);
+});
+
+// /urls/new Path
 // Must be defined GET "/urls/:shortURL" because Express will think that new is a route parameter.
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
@@ -40,6 +69,7 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// /u/:shortURL Path
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
     username: req.cookies["username"], 
@@ -56,20 +86,6 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
-});
-
-// Event when hitting submit under /urls/new
-app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString();
-  const longURL = req.body.longURL;
-  // adds the submited url into the urlDatabase with a random string ID
-  // checks before if http:// was added or not
-  if (longURL.substring(0, 7) === "http://") {
-    urlDatabase[shortURL] = longURL;
-  } else {
-    urlDatabase[shortURL] = `http://${longURL}`;
-  }
-  res.redirect(`/urls/${shortURL}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -92,14 +108,21 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   res.redirect("/urls");
 });
 
+// LOGIN
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect("/urls");
 });
 
+// LOGOUT
 app.post("/logout", (req, res) => {
   res.clearCookie('username');
   res.redirect("/urls");
+});
+
+// REGISTER
+app.get("/register", (req, res) => {
+  res.render("register");
 });
 
 const generateRandomString = () => {
