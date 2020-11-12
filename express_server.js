@@ -11,8 +11,8 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: ""},
+  "9sm5xK": { longURL: "http://www.google.com", userID: ""}
 };
 
 let users = { 
@@ -43,17 +43,28 @@ const fetchEmail = (usersDatabase, email) => {
   return false;
 };
 
-const authenticateUser = (usersDatabase, email, password) => {
-  for (const user in usersDatabase) {
-    if (usersDatabase.user.email === email) {
-      if (usersDatabase.user.password === password) {
-        return {error: null, user: usersDatabase[user]};
-      } else {
-        return { error: "Password does not match", user: null };
-      }
+// const authenticateUser = (usersDatabase, email, password) => {
+//   for (const user in usersDatabase) {
+//     if (usersDatabase.user.email === email) {
+//       if (usersDatabase.user.password === password) {
+//         return {error: null, user: usersDatabase[user]};
+//       } else {
+//         return { error: "Password does not match", user: null };
+//       }
+//     }
+//   }
+//   return {error: "Email not found", user: null };
+// };
+
+const urlsForUser = (id) => {
+  let usersUrls = {};
+  for (const url in urlDatabase) {
+    if (urlDatabase[url].userID === id) {
+      usersUrls[url] = { longURL: urlDatabase[url].longURL, userID: id }
     }
+    // usersShortenedUrls[url] = { longURL: urlDatabase[url].longURL, userID: userID};
   }
-  return {error: "Email not found", user: null };
+  return usersUrls;
 };
 
 // const fetchUser = (usersDatabase, id) => {
@@ -75,10 +86,21 @@ app.get("/urls.json", (req, res) => {
 // /URLS Path
 // Template Engine Excercise
 app.get("/urls", (req, res) => {
+
+  const userID = req.cookies["user_id"];
+  console.log(userID);
+
+  // console.log(req.cookies["user_id"]);
+  const userURL = urlsForUser(userID);
+
+
+  console.log(urlsForUser(userID));
+
   const templateVars = { 
     //username: req.cookies["username"], 
     user_id: users[req.cookies["user_id"]],
-    urls: urlDatabase
+    // urls: urlDatabase
+    urls: userURL
   };
   // console.log(templateVars);
   // console.log(user_id);
@@ -91,12 +113,22 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
+  const userID = users[req.cookies["user_id"]].id;
+  console.log(userID);
+
   // adds the submited url into the urlDatabase with a random string ID
   // checks before if http:// was added or not
+  // OLD
+  // if (longURL.substring(0, 7) === "http://") {
+  //   urlDatabase[shortURL] = longURL;
+  // } else {
+  //   urlDatabase[shortURL] = `http://${longURL}`;
+  // }
+  // NEW
   if (longURL.substring(0, 7) === "http://") {
-    urlDatabase[shortURL] = longURL;
+    urlDatabase[shortURL] = {longURL: longURL, userID: userID }
   } else {
-    urlDatabase[shortURL] = `http://${longURL}`;
+    urlDatabase[shortURL] = { longURL: `http://${longURL}`, userID: userID }
   }
   res.redirect(`/urls/${shortURL}`);
 });
@@ -108,7 +140,13 @@ app.get("/urls/new", (req, res) => {
     // username: req.cookies["username"]
     user_id: users[req.cookies["user_id"]],
   };
-  res.render("urls_new", templateVars);
+  const user = users[req.cookies["user_id"]];
+
+  // If the user is logged in, take them to /urls/new path, else redirect them to the login page
+  if (user) {
+    return res.render("urls_new", templateVars);
+  }
+  return res.redirect("/login");
 });
 
 // /u/:shortURL Path
@@ -117,7 +155,7 @@ app.get("/urls/:shortURL", (req, res) => {
     // username: req.cookies["username"],
     user_id: users[req.cookies["user_id"]],
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL] 
+    longURL: urlDatabase[req.params.shortURL].longURL
   };
   if (urlDatabase[req.params.shortURL]) {
     res.render("urls_show", templateVars);
@@ -132,23 +170,54 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls")
+  console.log("Delete post ------");
+  console.log("req.params: ", req.params);
+  // console.log("req.body[userID].userID: ", req.params[userID].userID);
+  const userID = users[req.cookies["user_id"]].id;
+  console.log("userID: ", userID);
+  // const userID = users[req.body.userID];
+  //if (userID === )
+
+  if (userID === urlDatabase[req.params.shortURL].userID) {
+    delete urlDatabase[req.params.shortURL];
+    return res.redirect("/urls")
+  }
+  return res.redirect("/login");
 });
 
 app.post("/urls/:shortURL/edit", (req, res) => {
   // console.log(req.body.newURL);
   // Input field named "newURL" is found in req.body
+  console.log("URLS EDIT ----")
+  console.log("req.body: ", req.body);
   const longURL = req.body.newURL;
   const shortURL = req.params.shortURL;
-
-  // checks if the user entered http:// or not for their input
-  if (longURL.substring(0, 7) === "http://") {
-    urlDatabase[shortURL] = longURL;
+  let userID = null;
+  console.log("req.cookies: ", req.cookies);
+  if (req.cookies["user_id"]) {
+    userID = users[req.cookies["user_id"]].id;
   } else {
-    urlDatabase[shortURL] = `http://${longURL}`;
+    return res.redirect("/login");
   }
-  res.redirect("/urls");
+  // console.log(users[req.cookies["user_id"]].id);
+
+  // console.log("userID: ", userID);
+
+  // if (!userID) {
+  //   return res.redirect("/login");
+  // }
+
+  if (userID === urlDatabase[shortURL].userID) {
+     // checks if the user entered http:// or not for their input
+    if (longURL.substring(0, 7) === "http://") {
+      urlDatabase[shortURL] = { longURL: longURL, userID: userID }
+    } else {
+      urlDatabase[shortURL] = { longURL: `http://${longURL}`, userID: userID }
+    }
+    return res.redirect("/urls");
+  }
+  
+ 
 });
 
 // LOGIN
@@ -158,7 +227,6 @@ app.post("/login", (req, res) => {
   // idk which one to use. req.cookies is undefined
   // res.cookie("user_id", users[req.cookies["user_id"]]);
   // res.cookie("user_id", req.body.email);
-
 
   const { email, password } = req.body;
 
@@ -182,7 +250,6 @@ app.post("/login", (req, res) => {
       }
     }
   }
-
   return res.status(403).send("Email not found");
 });
 
