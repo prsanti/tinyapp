@@ -47,10 +47,10 @@ app.get("/urls.json", (req, res) => {
 
 // /URLS
 app.get("/urls", (req, res) => {
-  const userID = req.session.user_id;
+  const userID = req.session["user_id"];
   const userURL = urlsForUser(urlDatabase, userID);
   const templateVars = {
-    user_id: users[req.session.user_id],
+    user_id: users[req.session["user_id"]],
     urls: userURL
   };
   // res.render takes in a .ejs file from views, then a variable to pass into the .ejs file
@@ -61,7 +61,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  const userID = users[req.session.user_id].id;
+  const userID = users[req.session["user_id"]].id;
 
   // adds the submited url into the urlDatabase with a random string ID
   // adds 'http://' if the user did not when submitting a new url
@@ -76,9 +76,9 @@ app.post("/urls", (req, res) => {
 // /URLS/NEW
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    user_id: users[req.session.user_id],
+    user_id: users[req.session["user_id"]],
   };
-  const user = users[req.session.user_id];
+  const user = users[req.session["user_id"]];
 
   // If the user is logged in, take them to /urls/new path, else redirect them to the login page
   if (user) {
@@ -90,7 +90,7 @@ app.get("/urls/new", (req, res) => {
 // /u/:shortURL Path
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    user_id: users[req.session.user_id],
+    user_id: users[req.session["user_id"]],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
@@ -102,13 +102,13 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
+  const longURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(longURL);
 });
 
 // DELETE
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = users[req.session.user_id].id;
+  const userID = users[req.session["user_id"]].id;
 
   if (userID === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
@@ -123,8 +123,8 @@ app.post("/urls/:shortURL/edit", (req, res) => {
   const shortURL = req.params.shortURL;
   let userID = null;
 
-  if (req.session.user_id) {
-    userID = users[req.session.user_id].id;
+  if (req.session["user_id"]) {
+    userID = users[req.session["user_id"]].id;
   } else {
     return res.redirect("/login");
   }
@@ -152,8 +152,7 @@ app.post("/login", (req, res) => {
     if (users[user].email === email) {
       // compares the entered password with the encrypted password in the user database
       if (bcrypt.compareSync(password, users[user].password)) {
-        // res.cookie("user_id", users[user].id);
-        req.session.user_id = users[user].id;
+        req.session["user_id"] = users[user].id;
         return res.redirect("/urls");
       } else {
         return res.status(403).send("Incorrect password.");
@@ -165,7 +164,7 @@ app.post("/login", (req, res) => {
 
 app.get("/login", (req, res) => {
   const templateVars = {
-    user_id: users[req.session.user_id]
+    user_id: users[req.session["user_id"]]
   };
   res.render("login", templateVars);
 });
@@ -179,7 +178,7 @@ app.post("/logout", (req, res) => {
 // REGISTER
 app.get("/register", (req, res) => {
   const templateVars = {
-    user_id: users[req.session.user_id]
+    user_id: users[req.session["user_id"]]
   };
   res.render("register", templateVars);
 });
@@ -202,7 +201,7 @@ app.post("/register", (req, res) => {
     password: hashedPassword
   };
 
-  req.session.user_id = id;
+  req.session["user_id"] = id;
   res.redirect("/urls");
 });
 
