@@ -3,7 +3,9 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
-const e = require("express");
+const bcrypt = require('bcrypt');
+// idk where this came from
+// const e = require("express");
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -223,10 +225,23 @@ app.post("/login", (req, res) => {
   // res.cookie("user_id", req.body.email);
 
   const { email, password } = req.body;
+  //console.log(bcrypt.compareSync(password, ));
+  // Old
+  // for (const user in users) {
+  //   if (users[user].email === email) {
+  //     if (users[user].password === password) {
+  //       res.cookie("user_id", users[user].id);
+  //       return res.redirect("/urls");
+  //     } else {
+  //       return res.status(403).send("Incorrect password.");
+  //     }
+  //   }
+  // }
 
   for (const user in users) {
     if (users[user].email === email) {
-      if (users[user].password === password) {
+      // compares the entered password with the encrypted password in the user database
+      if (bcrypt.compareSync(password, users[user].password)) {
         res.cookie("user_id", users[user].id);
         return res.redirect("/urls");
       } else {
@@ -261,8 +276,11 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+  // console.log(req.params);
+  const hashedPassword = bcrypt.hashSync(password, 10);
+  // console.log("hashed: ", hashedPassword, "plaintext: ", password);
 
-  if (email === "" || password === "") {
+  if (!email || !password) {
     return res.status(400).send("Invalid email or password");
   } else if (fetchEmail(users, email)) {
     return res.status(400).send("Email already in use.");
@@ -273,8 +291,10 @@ app.post("/register", (req, res) => {
   users[id] = {
     id,
     email,
-    password
+    password: hashedPassword
   };
+  // test if the user database is added with a hashed password
+  // console.log(users);
 
   // cookie with just the id srting
   res.cookie('user_id', id);
