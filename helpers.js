@@ -17,7 +17,7 @@ const urlsForUser = (urlDatabase, id) => {
   let usersUrls = {};
   for (const url in urlDatabase) {
     if (urlDatabase[url].userID === id) {
-      usersUrls[url] = { longURL: urlDatabase[url].longURL, userID: id }
+      usersUrls[url] = { longURL: urlDatabase[url].longURL, userID: id };
     }
     // usersShortenedUrls[url] = { longURL: urlDatabase[url].longURL, userID: userID};
   }
