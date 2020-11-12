@@ -167,6 +167,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+// DELETE
 app.post("/urls/:shortURL/delete", (req, res) => {
   // console.log("Delete post ------");
   // console.log("req.params: ", req.params);
@@ -181,6 +182,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   return res.redirect("/login");
 });
 
+// EDIT
 app.post("/urls/:shortURL/edit", (req, res) => {
   // console.log(req.body.newURL);
   // Input field named "newURL" is found in req.body
