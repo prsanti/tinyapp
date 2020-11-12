@@ -8,6 +8,8 @@ const bcrypt = require('bcrypt');
 // idk where this came from
 // const e = require("express");
 
+const { generateRandomString, getUserByEmail, urlsForUser } = require('./helpers');
+
 app.use(bodyParser.urlencoded({extended: true}));
 // app.use(cookieParser());
 app.use(
@@ -24,33 +26,20 @@ const urlDatabase = {
   "9sm5xK": { longURL: "http://www.google.com", userID: ""}
 };
 
-let users = { 
+let users = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: "purple-monkey-dinosaur"
   },
- "user2RandomID": {
+  "user2RandomID": {
     id: "user2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
   }
 };
 
-const generateRandomString = () => {
-  // creates a random alpha-numeric string of 6 characters
-  const shortURL = Math.random().toString(36).substring(2, 8);
-  return shortURL;
-};
 
-const fetchEmail = (usersDatabase, email) => {
-  for (const id in usersDatabase) {
-    if (usersDatabase[id].email === email) {
-      return true;
-    }
-  }
-  return false;
-};
 
 // const authenticateUser = (usersDatabase, email, password) => {
 //   for (const user in usersDatabase) {
@@ -65,16 +54,7 @@ const fetchEmail = (usersDatabase, email) => {
 //   return {error: "Email not found", user: null };
 // };
 
-const urlsForUser = (id) => {
-  let usersUrls = {};
-  for (const url in urlDatabase) {
-    if (urlDatabase[url].userID === id) {
-      usersUrls[url] = { longURL: urlDatabase[url].longURL, userID: id }
-    }
-    // usersShortenedUrls[url] = { longURL: urlDatabase[url].longURL, userID: userID};
-  }
-  return usersUrls;
-};
+
 
 // const fetchUser = (usersDatabase, id) => {
 //   if (usersDatabase.id) {
@@ -100,7 +80,7 @@ app.get("/urls", (req, res) => {
   // const userID = req.cookies["user_id"];
   const userID = req.session.user_id;
 
-  const userURL = urlsForUser(userID);
+  const userURL = urlsForUser(urlDatabase, userID);
 
   const templateVars = { 
     // user_id: users[req.cookies["user_id"]],
@@ -299,7 +279,7 @@ app.post("/register", (req, res) => {
 
   if (!email || !password) {
     return res.status(400).send("Invalid email or password");
-  } else if (fetchEmail(users, email)) {
+  } else if (getUserByEmail(users, email)) {
     return res.status(400).send("Email already in use.");
   }
 
