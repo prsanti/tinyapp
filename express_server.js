@@ -88,13 +88,11 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
 
   const userID = req.cookies["user_id"];
-  console.log(userID);
+  // console.log(userID);
 
   // console.log(req.cookies["user_id"]);
   const userURL = urlsForUser(userID);
-
-
-  console.log(urlsForUser(userID));
+  // console.log(urlsForUser(userID));
 
   const templateVars = { 
     //username: req.cookies["username"], 
@@ -170,13 +168,11 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  console.log("Delete post ------");
-  console.log("req.params: ", req.params);
+  // console.log("Delete post ------");
+  // console.log("req.params: ", req.params);
   // console.log("req.body[userID].userID: ", req.params[userID].userID);
   const userID = users[req.cookies["user_id"]].id;
-  console.log("userID: ", userID);
-  // const userID = users[req.body.userID];
-  //if (userID === )
+  // console.log("userID: ", userID);
 
   if (userID === urlDatabase[req.params.shortURL].userID) {
     delete urlDatabase[req.params.shortURL];
@@ -188,25 +184,20 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL/edit", (req, res) => {
   // console.log(req.body.newURL);
   // Input field named "newURL" is found in req.body
-  console.log("URLS EDIT ----")
-  console.log("req.body: ", req.body);
+  // console.log("URLS EDIT ----")
+  // console.log("req.body: ", req.body);
   const longURL = req.body.newURL;
   const shortURL = req.params.shortURL;
   let userID = null;
-  console.log("req.cookies: ", req.cookies);
+
+  // console.log("req.cookies: ", req.cookies);
   if (req.cookies["user_id"]) {
     userID = users[req.cookies["user_id"]].id;
   } else {
     return res.redirect("/login");
   }
-  // console.log(users[req.cookies["user_id"]].id);
 
-  // console.log("userID: ", userID);
-
-  // if (!userID) {
-  //   return res.redirect("/login");
-  // }
-
+  // Checks if the current user logged in's ID matches the URL's ID of the user that created it
   if (userID === urlDatabase[shortURL].userID) {
      // checks if the user entered http:// or not for their input
     if (longURL.substring(0, 7) === "http://") {
@@ -217,7 +208,8 @@ app.post("/urls/:shortURL/edit", (req, res) => {
     return res.redirect("/urls");
   }
   
- 
+  // redirects to login if a different user is trying to edit another user's URL
+  return res.redirect("/login");
 });
 
 // LOGIN
@@ -229,16 +221,6 @@ app.post("/login", (req, res) => {
   // res.cookie("user_id", req.body.email);
 
   const { email, password } = req.body;
-
-  // const fetchUserInfo = authenticateUser(users, email, password);
-
-  // if (fetchUserInfo.error) {
-  //   const templateVars = { error: fetchUserInfo.error };
-  //   return res.render("login", templateVars);
-  // } else {
-  //   res.cookie("user_id", fetchUserInfo.email);
-  //   return res.redirect("/urls");
-  // }
 
   for (const user in users) {
     if (users[user].email === email) {
@@ -284,15 +266,6 @@ app.post("/register", (req, res) => {
     return res.status(400).send("Email already in use.");
   }
 
-  // for (const id in users) {
-  //   if (users[id].email === email) {
-  //     // return res.send("Email already in use, please try again.");
-  //     // console.log("email already in use, please try again.");
-  //     // return res.redirect("/register");
-  //     return res.status(400).send("Email already in use.");
-  //   }
-  // }
-
   const id = generateRandomString();
 
   users[id] = {
@@ -300,9 +273,6 @@ app.post("/register", (req, res) => {
     email,
     password
   };
-
-  // cookie with the full object of id
-  // res.cookie('user_id', users[id]);
 
   // cookie with just the id srting
   res.cookie('user_id', id);
