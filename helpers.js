@@ -4,13 +4,14 @@ const generateRandomString = () => {
   return shortURL;
 };
 
+// Had to modify Compass' getUserByEmail function to match what it does in my project
 const getUserByEmail = (usersDatabase, email) => {
   for (const id in usersDatabase) {
     if (usersDatabase[id].email === email) {
       return usersDatabase[id];
     }
   }
-  return null;
+  return undefined;
 };
 
 const urlsForUser = (urlDatabase, id) => {
@@ -19,7 +20,6 @@ const urlsForUser = (urlDatabase, id) => {
     if (urlDatabase[url].userID === id) {
       usersUrls[url] = { longURL: urlDatabase[url].longURL, userID: id };
     }
-    // usersShortenedUrls[url] = { longURL: urlDatabase[url].longURL, userID: userID};
   }
   return usersUrls;
 };
