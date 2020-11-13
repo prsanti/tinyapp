@@ -13,15 +13,15 @@
     <% if (user_id) { %>
       <form action="/logout" method="POST">
         <label>Logged in As: <%= user_id.email %>!</label>
-        <input type="submit" value="Logout">
+        <input type="submit" value="Logout" style="background-color: lightcoral">
       </form>
     <% } else { %>
       <form action="/login" method="GET">
-        <input type="submit" value="Login">
+        <input type="submit" value="Login" style="background-color: lightgreen;">
     </form>
   <% } %>
     <form action="/register" method="GET">
-      <input type="submit" value="Register">
+      <input type="submit" value="Register" style="background-color: lightblue;">
     </form>
   </nav>
 </header>
