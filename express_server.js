@@ -38,67 +38,75 @@ let users = {
 
 // Redirect home page to /urls
 app.get("/", (req, res) => {
-  res.redirect("/urls");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  const userId = req.session["user_id"];
+  // Redirects the user to /urls if logged in, otherwise redirects to /login
+  if (userId) {
+    return res.redirect("/urls");
+  } else {
+    return res.redirect("/login");
+  }
 });
 
 // /URLS
 app.get("/urls", (req, res) => {
-  const userID = req.session["user_id"];
-  const userURL = urlsForUser(urlDatabase, userID);
+  const userId = req.session["user_id"];
+  const userURL = urlsForUser(urlDatabase, userId);
   const templateVars = {
-    user_id: users[req.session["user_id"]],
+    user_id: users[userId],
     urls: userURL
   };
-  // res.render takes in a .ejs file from views, then a variable to pass into the .ejs file
-  res.render("urls_index", templateVars);
+  // If user is logged in take them to /urls page, otherwise sends an error message to login.
+  if (userId) {
+    return res.render("urls_index", templateVars);
+  } else {
+    return res.status(400).send("Please login to view URLs.");
+  }
 });
 
-// Event when hitting submit under /urls/new
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
-  const userID = users[req.session["user_id"]].id;
-
+  const userId = req.session["user_id"];
   // adds the submited url into the urlDatabase with a random string ID
   // adds 'http://' if the user did not when submitting a new url
   if (longURL.substring(0, 7) === "http://") {
-    urlDatabase[shortURL] = {longURL: longURL, userID: userID };
+    urlDatabase[shortURL] = {longURL: longURL, userID: userId };
   } else {
-    urlDatabase[shortURL] = { longURL: `http://${longURL}`, userID: userID };
+    urlDatabase[shortURL] = { longURL: `http://${longURL}`, userID: userId };
   }
   res.redirect(`/urls/${shortURL}`);
 });
 
 // /URLS/NEW
 app.get("/urls/new", (req, res) => {
+  const userId = req.session["user_id"];
   const templateVars = {
-    user_id: users[req.session["user_id"]],
+    user_id: users[userId],
   };
-  const user = users[req.session["user_id"]];
-
   // If the user is logged in, take them to /urls/new path, else redirect them to the login page
-  if (user) {
+  if (userId) {
     return res.render("urls_new", templateVars);
   }
+  // Redirects user to /login if the user is not logged in
   return res.redirect("/login");
 });
 
 // /u/:shortURL Path
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = {
-    user_id: users[req.session["user_id"]],
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
-  };
-  if (urlDatabase[req.params.shortURL]) {
-    res.render("urls_show", templateVars);
-  } else {
-    res.send("URL not found.");
+  const userId = req.session["user_id"];
+  const shortURL = req.params.shortURL;
+  // Checks if the URL is in the URL database before rendering /u/:shortURL
+  // If it is not, send an error 404.
+  if (!urlDatabase[shortURL]) {
+    return res.status(404).send("URL not found.");
   }
+  // Adds variables to template vars to render the page after it checks for errors.
+  const templateVars = {
+    user_id: users[userId],
+    shortURL,
+    longURL: urlDatabase[shortURL].longURL
+  };
+  res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -108,46 +116,47 @@ app.get("/u/:shortURL", (req, res) => {
 
 // DELETE
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = users[req.session["user_id"]].id;
-
-  if (userID === urlDatabase[req.params.shortURL].userID) {
-    delete urlDatabase[req.params.shortURL];
+  const shortURL = req.params.shortURL;
+  const userID = req.session["user_id"];
+  // Checks if the same user created the URL before deleting it
+  if (userID === urlDatabase[shortURL].userID) {
+    delete urlDatabase[shortURL];
     return res.redirect("/urls");
   }
-  return res.redirect("/login");
+  return res.status(400).send("Please login to delete the URL.");
 });
 
 // EDIT
 app.post("/urls/:shortURL/edit", (req, res) => {
   const longURL = req.body.newURL;
   const shortURL = req.params.shortURL;
-  let userID = null;
+  let userId = null;
 
+  // Checks if the user is logged in before they can edit.
   if (req.session["user_id"]) {
-    userID = users[req.session["user_id"]].id;
+    userId = users[req.session["user_id"]].id;
   } else {
     return res.redirect("/login");
   }
 
   // Checks if the current user logged in's ID matches the URL's ID of the user that created it
-  if (userID === urlDatabase[shortURL].userID) {
+  if (userId === urlDatabase[shortURL].userID) {
     // checks if the user entered http:// or not for their input
     if (longURL.substring(0, 7) === "http://") {
-      urlDatabase[shortURL] = { longURL: longURL, userID: userID };
+      urlDatabase[shortURL] = { longURL: longURL, userID: userId };
     } else {
-      urlDatabase[shortURL] = { longURL: `http://${longURL}`, userID: userID };
+      urlDatabase[shortURL] = { longURL: `http://${longURL}`, userID: userId };
     }
     return res.redirect("/urls");
   }
   
   // redirects to login if a different user is trying to edit another user's URL
-  return res.redirect("/login");
+  return res.status(400).send("Please login to edit URL.");
 });
 
 // LOGIN
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-
   for (const user in users) {
     if (users[user].email === email) {
       // compares the entered password with the encrypted password in the user database
@@ -187,6 +196,8 @@ app.post("/register", (req, res) => {
   const { email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10);
 
+  // Checks if the submitted email and password were empty and sends an error
+  // if the email is already in use, send an error.
   if (!email || !password) {
     return res.status(400).send("Invalid email or password");
   } else if (getUserByEmail(users, email)) {
