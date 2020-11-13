@@ -100,6 +100,12 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!urlDatabase[shortURL]) {
     return res.status(404).send("URL not found.");
   }
+
+  // Checks if the current user is the same as the creator of the shortURL
+  if (userId !== urlDatabase[shortURL].userID) {
+    return res.status(403).send("Access forbidden. Please login with the correct account to view this page.")
+  }
+
   // Adds variables to template vars to render the page after it checks for errors.
   const templateVars = {
     user_id: users[userId],
